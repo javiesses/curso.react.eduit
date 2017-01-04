@@ -56,8 +56,6 @@
 
 	var _redux = __webpack_require__(178);
 
-	var _index = __webpack_require__(199);
-
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -65,6 +63,8 @@
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var todo = __webpack_require__(201);
 
 	var Title = function (_React$Component) {
 	  _inherits(Title, _React$Component);
@@ -89,8 +89,10 @@
 	  return Title;
 	}(_react2.default.Component);
 
+	//un componente no necesariamente tiene que ser una clase
+
+
 	function TodoItem(props) {
-	  console.log(props);
 	  return _react2.default.createElement(
 	    'li',
 	    null,
@@ -136,11 +138,14 @@
 	  _createClass(App, [{
 	    key: 'render',
 	    value: function render() {
+	      var todoLists = this.props.todos.map(function (t) {
+	        return _react2.default.createElement(Todos, { todos: t });
+	      });
 	      return _react2.default.createElement(
 	        'div',
 	        null,
 	        _react2.default.createElement(Title, { value: 'hola a todos' }),
-	        _react2.default.createElement(Todos, { todos: this.props.todos })
+	        todoLists
 	      );
 	    }
 	  }]);
@@ -148,17 +153,22 @@
 	  return App;
 	}(_react2.default.Component);
 
+	//leer sobre inmutables
+	//render() lo importa arriba
+	//todo lo importa arriba
+
+
 	var appRender = function appRender() {
-	  return (0, _reactDom.render)(_react2.default.createElement(App, { todos: _index.todo.getState() }), document.getElementById('app'));
+	  return (0, _reactDom.render)(_react2.default.createElement(App, { todos: [todo.getState()] }), document.getElementById('app'));
 	};
 
-	_index.todo.subscribe(function () {
-	  return appRender();
+	todo.subscribe(function () {
+	  return console.log(todo.getState());
 	});
 
-	_index.todo.dispatch({ type: 'ADD_TODO', title: 'Task 1' });
-	_index.todo.dispatch({ type: 'ADD_TODO', title: 'Task 2' });
-	_index.todo.dispatch({ type: 'ADD_TODO', title: 'Task 3' });
+	todo.dispatch({ type: 'ADD_LIST' });
+	todo.dispatch({ type: 'ADD_LIST' });
+	todo.dispatch({ type: 'ADD_LIST' });
 
 /***/ },
 /* 1 */
@@ -22606,16 +22616,7 @@
 	}
 
 /***/ },
-/* 199 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	module.exports = {
-	  todo: __webpack_require__(200)
-	};
-
-/***/ },
+/* 199 */,
 /* 200 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -22634,27 +22635,91 @@
 	    case 'ADD_TODO':
 	      return {
 	        title: action.title,
-	        status: false,
+	        status: true,
 	        id: id++
 	      };
 	      break;
+
+	    case 'ALTER_TODO':
+	      //si me mandan un objeto que no coincide, lo devuelvo tal cual
+	      if (state.id !== action.id) return state;
+	      //si no, asigno a un objeto vacío el state original, y sobre eso cambio el estado
+	      return Object.assign({}, state, { status: !state.status });
+	      break;
+
+	    case 'REMOVE_TODO':
+	      return !(state.id === action.id);
+	      break;
+
 	    default:
 	      return state;
 	  }
 	}
-	function todos() {
+
+	function generateTodos() {
+	  var initState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+	  function todos() {
+	    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initState;
+	    var action = arguments[1];
+
+	    switch (action.type) {
+	      case 'ADD_TODO':
+	        return [].concat(_toConsumableArray(state), [todo(null, action)]);
+	        break;
+
+	      case 'REMOVE_TODO':
+	        return state.filter(function (t) {
+	          return todo(t, action);
+	        });
+	        break;
+
+	      case 'ALTER_TODO':
+	        return state.map(function (t) {
+	          return todo(t, action);
+	        });
+	        break;
+
+	        break;
+	      default:
+	        return state;
+	    }
+	  }
+	}
+
+	module.exports = function (initState) {
+	  return generateTodos((0, _redux.createStore)(initState));
+	}; //devuelvo una factory de todosList
+
+/***/ },
+/* 201 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _redux = __webpack_require__(178);
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	var factoryTodos = __webpack_require__(200);
+
+	function multipleTodos() {
 	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 	  var action = arguments[1];
 
 	  switch (action.type) {
-	    case 'ADD_TODO':
-	      return [].concat(_toConsumableArray(state), [todo(null, action)]);
+	    case 'ADD_LIST':
+	      return [].concat(_toConsumableArray(state), [factoryTodos()]); //ejecuto la function que importé. agrego un store a la lista
 	      break;
 
-	    case 'REMOVE_TODO':
-	      return [].concat(_toConsumableArray(state.slice(0, actionindex).concat(state.slice(index + 1))));
-
+	    case 'ALTER_TODO':
+	      return state.map(function (todosStore, index) {
+	        if (action.index !== index) return todosStore;
+	        todosStore.dispatch({ type: 'ADD_TODO', id: action.id, title: action.title });
+	        return todosStore;
+	      });
 	      break;
+
 	    default:
 	      return state;
 	  }

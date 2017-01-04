@@ -1,7 +1,7 @@
 import React from 'react';
 import {render} from 'react-dom';
 import { createStore } from 'redux';
-import {todo} from './reducers/index.jsx';
+const todo = require('./reducers/multipletodos.jsx');
 
 class Title extends React.Component {
   render(){
@@ -11,10 +11,12 @@ class Title extends React.Component {
   }
 }
 
-
+//un componente no necesariamente tiene que ser una clase
 function TodoItem(props){  
   return (
-    <li>{props.todo.title}</li>
+    <li>
+      {props.todo.title}
+    </li>
   )
 }
 
@@ -33,21 +35,29 @@ class Todos extends React.Component{
 
 class App extends React.Component {
   render() {
+    let todoLists = this.props.todos.map(t => (
+      <Todos todos={t} />
+    ));
     return (
       <div>
         <Title value="hola a todos" />
-        <Todos todos={this.props.todos} />
+        {todoLists}
       </div>
     );
   }
 }
 
-const appRender = ()=>render(<App todos={todo.getState()} />,
+
+//leer sobre inmutables
+//render() lo importa arriba
+//todo lo importa arriba
+const appRender = ()=>render(
+  <App todos={[todo.getState()]} />,
   document.getElementById('app')
 );
 
-todo.subscribe(()=> appRender());
+todo.subscribe(()=> console.log(todo.getState()));
 
-todo.dispatch({type:'ADD_TODO', title: 'Task 1'});
-todo.dispatch({type:'ADD_TODO', title: 'Task 2'});
-todo.dispatch({type:'ADD_TODO', title: 'Task 3'});
+todo.dispatch({type:'ADD_LIST'});
+todo.dispatch({type:'ADD_LIST'});
+todo.dispatch({type:'ADD_LIST'});
