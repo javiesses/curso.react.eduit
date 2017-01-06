@@ -54,9 +54,7 @@
 
 	var _reactDom = __webpack_require__(32);
 
-	var _redux = __webpack_require__(178);
-
-	var _index = __webpack_require__(199);
+	var _index = __webpack_require__(178);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -66,102 +64,277 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var Title = function (_React$Component) {
-	  _inherits(Title, _React$Component);
+	_index.todoStore.subscribe(function (state) {
+	  console.log('------------------------------------------------');
+	  _index.todoStore.getState().forEach(function (e) {
+	    return console.log(e);
+	  });
+	});
 
-	  function Title() {
-	    _classCallCheck(this, Title);
+	var Clock = function (_React$Component) {
+	  _inherits(Clock, _React$Component);
 
-	    return _possibleConstructorReturn(this, (Title.__proto__ || Object.getPrototypeOf(Title)).apply(this, arguments));
+	  function Clock(props) {
+	    _classCallCheck(this, Clock);
+
+	    var _this = _possibleConstructorReturn(this, (Clock.__proto__ || Object.getPrototypeOf(Clock)).call(this, props));
+
+	    _this.state = {
+	      currentTime: new Date().getSeconds()
+	    };
+	    return _this;
 	  }
 
-	  _createClass(Title, [{
+	  _createClass(Clock, [{
 	    key: 'render',
 	    value: function render() {
 	      return _react2.default.createElement(
-	        'h1',
+	        'h2',
 	        null,
-	        this.props.value
+	        this.state.currentTime
+	      );
+	    }
+	  }, {
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      var _this2 = this;
+
+	      //este metodo es un metodo que estamos overrideando. se ejecuta cuando se termina de ejectutar el render
+	      this.intervalId = setInterval(function () {
+	        return _this2.setState({ currentTime: new Date().getSeconds() });
+	      }, 1000);
+	    }
+	  }]);
+
+	  return Clock;
+	}(_react2.default.Component);
+
+	var FormTodo = function (_React$Component2) {
+	  _inherits(FormTodo, _React$Component2);
+
+	  function FormTodo(props) {
+	    _classCallCheck(this, FormTodo);
+
+	    var _this3 = _possibleConstructorReturn(this, (FormTodo.__proto__ || Object.getPrototypeOf(FormTodo)).call(this, props));
+
+	    _this3.handleSubmit = _this3.handleSubmit.bind(_this3); //si no se hiciera esto, el this dentro del metodo sería global, como si fuese jquety.
+	    _this3.changeField = _this3.changeField.bind(_this3); //se le dice al metodo que cuando invoque el this se refiera a la instancia en si.
+	    _this3.state = {
+	      title: ''
+	    };
+	    return _this3;
+	  }
+
+	  _createClass(FormTodo, [{
+	    key: 'changeField',
+	    value: function changeField(evt) {
+	      var own = {};
+	      own[evt.target.id] = evt.target.value; //lo hace porque si hay mas de un elemento, con esto se lo setea. en este caso va a ser own['title']
+	      this.setState(own);
+	    }
+	  }, {
+	    key: 'handleSubmit',
+	    value: function handleSubmit(evt) {
+	      evt.preventDefault();
+	      if (this.state.title.trim() === '') return;
+	      _index.todoStore.dispatch({ type: 'ADD_TODO', title: this.state.title });
+	      this.setState({ title: '' });
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return _react2.default.createElement(
+	        'form',
+	        { onSubmit: this.handleSubmit },
+	        _react2.default.createElement(
+	          'label',
+	          null,
+	          'Title: ',
+	          _react2.default.createElement('input', { type: 'text', id: 'title', value: this.state.title, onChange: this.changeField })
+	        ),
+	        _react2.default.createElement('input', { type: 'submit', value: 'Add' })
 	      );
 	    }
 	  }]);
 
-	  return Title;
+	  return FormTodo;
 	}(_react2.default.Component);
 
-	var TodoItem = function (_React$Component2) {
-	  _inherits(TodoItem, _React$Component2);
+	var StartStopButton = function (_React$Component3) {
+	  _inherits(StartStopButton, _React$Component3);
+
+	  function StartStopButton(props) {
+	    _classCallCheck(this, StartStopButton);
+
+	    var _this4 = _possibleConstructorReturn(this, (StartStopButton.__proto__ || Object.getPrototypeOf(StartStopButton)).call(this, props));
+
+	    _this4.start = _this4.start.bind(_this4);
+	    _this4.stop = _this4.stop.bind(_this4);
+	    _this4.clicked = _this4.clicked.bind(_this4);
+	    _this4.state = {
+	      started: false,
+	      counter: 0
+	    };
+	    return _this4;
+	  }
+
+	  _createClass(StartStopButton, [{
+	    key: 'start',
+	    value: function start() {
+	      var _this5 = this;
+
+	      this.intervalId = setInterval(function () {
+	        return _this5.setState({ started: true, counter: _this5.state.counter + 1 });
+	      }, 1000);
+	      _index.todoStore.dispatch({ type: 'START_TODO', id: this.props.todo.id });
+	    }
+	  }, {
+	    key: 'stop',
+	    value: function stop() {
+	      clearInterval(this.intervalId);
+	      this.setState({ started: false });
+	      _index.todoStore.dispatch({ type: 'STOP_TODO', id: this.props.todo.id });
+	    }
+	  }, {
+	    key: 'clicked',
+	    value: function clicked() {
+	      if (this.state.started) this.stop();else this.start();
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var style = {
+	        display: this.state.counter ? 'block' : 'none'
+	      };
+
+	      return _react2.default.createElement(
+	        'div',
+	        null,
+	        _react2.default.createElement(
+	          'button',
+	          { onClick: this.clicked },
+	          this.state.started ? 'Stop!' : 'Start!'
+	        ),
+	        _react2.default.createElement(
+	          'span',
+	          { style: style },
+	          this.state.counter
+	        )
+	      );
+	    }
+	  }]);
+
+	  return StartStopButton;
+	}(_react2.default.Component);
+
+	var RemoveButton = function (_React$Component4) {
+	  _inherits(RemoveButton, _React$Component4);
+
+	  function RemoveButton(props) {
+	    _classCallCheck(this, RemoveButton);
+
+	    var _this6 = _possibleConstructorReturn(this, (RemoveButton.__proto__ || Object.getPrototypeOf(RemoveButton)).call(this, props));
+
+	    _this6.removeItem = _this6.removeItem.bind(_this6);
+	    return _this6;
+	  }
+
+	  _createClass(RemoveButton, [{
+	    key: 'removeItem',
+	    value: function removeItem() {
+	      _index.todoStore.dispatch({ type: 'REMOVE_TODO', id: this.props.todo.id });
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return _react2.default.createElement(
+	        'button',
+	        { onClick: this.removeItem },
+	        'Eliminar'
+	      );
+	    }
+	  }]);
+
+	  return RemoveButton;
+	}(_react2.default.Component);
+
+	var TodoItem = function (_React$Component5) {
+	  _inherits(TodoItem, _React$Component5);
 
 	  function TodoItem(props) {
 	    _classCallCheck(this, TodoItem);
 
-	    var _this2 = _possibleConstructorReturn(this, (TodoItem.__proto__ || Object.getPrototypeOf(TodoItem)).call(this, props));
+	    var _this7 = _possibleConstructorReturn(this, (TodoItem.__proto__ || Object.getPrototypeOf(TodoItem)).call(this, props));
 
-	    _this2.state = {
-	      todo: props.todo
-	    };
-	    return _this2;
+	    _this7.toggleItem = _this7.toggleItem.bind(_this7);
+	    return _this7;
 	  }
 
 	  _createClass(TodoItem, [{
-	    key: 'render',
-	    value: function render() {
-	      return _react2.default.createElement(
-	        'li',
-	        null,
-	        this.state.todo.title
-	      );
+	    key: 'toggleItem',
+	    value: function toggleItem() {
+	      _index.todoStore.dispatch({ type: 'TOGGLE_TODO', id: this.props.todo.id });
 	    }
 	  }, {
-	    key: 'alter',
-	    value: function alter() {
-	      this.setState(Object.assing({}, this.state.todo, { state: !this.state.todo.status }));
+	    key: 'render',
+	    value: function render() {
+	      var itemStyle = {
+	        color: this.props.todo.finish === true ? '#000000' : '#ff0000'
+	      };
+
+	      return _react2.default.createElement(
+	        'li',
+	        { style: itemStyle },
+	        _react2.default.createElement(
+	          'span',
+	          { onClick: this.toggleItem },
+	          this.props.todo.title
+	        ),
+	        _react2.default.createElement(RemoveButton, { todo: this.props.todo }),
+	        _react2.default.createElement(StartStopButton, { todo: this.props.todo })
+	      );
 	    }
 	  }]);
 
 	  return TodoItem;
 	}(_react2.default.Component);
 
-	var Todos = function (_React$Component3) {
-	  _inherits(Todos, _React$Component3);
+	var TodosList = function (_React$Component6) {
+	  _inherits(TodosList, _React$Component6);
 
-	  function Todos(props) {
-	    _classCallCheck(this, Todos);
+	  function TodosList() {
+	    _classCallCheck(this, TodosList);
 
-	    var _this3 = _possibleConstructorReturn(this, (Todos.__proto__ || Object.getPrototypeOf(Todos)).call(this, props));
-
-	    _this3.state = { todos: props.todos };
-	    return _this3;
+	    return _possibleConstructorReturn(this, (TodosList.__proto__ || Object.getPrototypeOf(TodosList)).apply(this, arguments));
 	  }
 
-	  _createClass(Todos, [{
+	  _createClass(TodosList, [{
 	    key: 'render',
 	    value: function render() {
-	      var items = this.state.todos.map(function (t) {
-	        return _react2.default.createElement(TodoItem, { key: t.id, todo: t });
-	      });
+	      var list = '';
 	      return _react2.default.createElement(
-	        'div',
+	        'ul',
 	        null,
-	        _react2.default.createElement(
-	          'span',
-	          null,
-	          'List de tareas'
-	        ),
-	        _react2.default.createElement(
-	          'ul',
-	          null,
-	          items
-	        )
+	        this.props.todos.map(function (t) {
+	          return _react2.default.createElement(TodoItem, { key: t.id, todo: t });
+	        })
 	      );
 	    }
 	  }]);
 
-	  return Todos;
+	  return TodosList;
 	}(_react2.default.Component);
 
-	var App = function (_React$Component4) {
-	  _inherits(App, _React$Component4);
+	function Title(props) {
+	  return _react2.default.createElement(
+	    'h1',
+	    null,
+	    props.value
+	  );
+	}
+
+	var App = function (_React$Component7) {
+	  _inherits(App, _React$Component7);
 
 	  function App() {
 	    _classCallCheck(this, App);
@@ -175,10 +348,10 @@
 	      return _react2.default.createElement(
 	        'div',
 	        null,
-	        _react2.default.createElement(Title, { value: 'hola a todos' }),
-	        this.props.list.map(function (todos) {
-	          return _react2.default.createElement(Todos, { todos: todos.getState() });
-	        })
+	        _react2.default.createElement(Title, { value: 'relojes magicos' }),
+	        _react2.default.createElement(Clock, null),
+	        _react2.default.createElement(FormTodo, null),
+	        _react2.default.createElement(TodosList, { todos: _index.todoStore.getState() })
 	      );
 	    }
 	  }]);
@@ -187,17 +360,14 @@
 	}(_react2.default.Component);
 
 	var appRender = function appRender() {
-	  return (0, _reactDom.render)(_react2.default.createElement(App, { list: _index.multipleTodos.getState() }), document.getElementById('app'));
+	  return (0, _reactDom.render)(_react2.default.createElement(App, null), document.getElementById('app'));
 	};
 
-	_index.multipleTodos.subscribe(function () {
-	  appRender();
-	});
+	appRender();
 
-	_index.multipleTodos.dispatch({ type: 'ADD_LIST' });
-	_index.multipleTodos.dispatch({ type: 'ADD_LIST' });
-	_index.multipleTodos.dispatch({ type: 'ADD_LIST' });
-	_index.multipleTodos.dispatch({ type: 'ADD_TODO', index: 1, title: 'sarasa' });
+	_index.todoStore.subscribe(function () {
+	  return appRender();
+	});
 
 /***/ },
 /* 1 */
@@ -21616,32 +21786,121 @@
 /* 178 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
+	module.exports = {
+	  todoStore: __webpack_require__(179)
+	};
+
+/***/ },
+/* 179 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _redux = __webpack_require__(180);
+
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+	var id = 0;
+
+	function todo() {
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	  var action = arguments[1];
+
+	  switch (action.type) {
+	    case 'ADD_TODO':
+	      return {
+	        title: action.title,
+	        finish: false,
+	        timer: 0,
+	        id: id++
+	      };
+	      break;
+	    case 'TOGGLE_TODO':
+	      //console.log(state.id, action.id);
+	      if (state.id !== action.id) return state;
+	      return Object.assign({}, state, { finish: !state.finish });
+	    case 'REMOVE_TODO':
+	      console.log(state.id, action.id);
+	      return !(state.id === action.id);
+	    case 'START_TODO':
+	      console.log(state);
+	      if (state.id !== action.id) return state;
+	      return Object.assign({}, state, {
+	        finish: false,
+	        started: new Date()
+	      });
+	    case 'STOP_TODO':
+	      console.log(state);
+	      if (state.id !== action.id) return state;
+	      return Object.assign({}, state, {
+	        finish: true,
+	        finished: new Date()
+	      });
+	    default:
+
+	  }
+	}
+
+	function todos() {
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+	  var action = arguments[1];
+
+	  //console.log(state);
+	  switch (action.type) {
+	    case 'ADD_TODO':
+	      return [].concat(_toConsumableArray(state), [todo(null, action)]);
+	      break;
+	    case 'REMOVE_TODO':
+	      return state.filter(function (t) {
+	        return todo(t, action);
+	      });
+	      break;
+	    case 'TOGGLE_TODO':
+	    case 'START_TODO':
+	    case 'STOP_TODO':
+	      return state.map(function (t) {
+	        return todo(t, action);
+	      });
+	      break;
+	    default:
+	      return state;
+	  }
+	}
+
+	module.exports = (0, _redux.createStore)(todos);
+
+/***/ },
+/* 180 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
 	exports.__esModule = true;
 	exports.compose = exports.applyMiddleware = exports.bindActionCreators = exports.combineReducers = exports.createStore = undefined;
 
-	var _createStore = __webpack_require__(179);
+	var _createStore = __webpack_require__(181);
 
 	var _createStore2 = _interopRequireDefault(_createStore);
 
-	var _combineReducers = __webpack_require__(194);
+	var _combineReducers = __webpack_require__(196);
 
 	var _combineReducers2 = _interopRequireDefault(_combineReducers);
 
-	var _bindActionCreators = __webpack_require__(196);
+	var _bindActionCreators = __webpack_require__(198);
 
 	var _bindActionCreators2 = _interopRequireDefault(_bindActionCreators);
 
-	var _applyMiddleware = __webpack_require__(197);
+	var _applyMiddleware = __webpack_require__(199);
 
 	var _applyMiddleware2 = _interopRequireDefault(_applyMiddleware);
 
-	var _compose = __webpack_require__(198);
+	var _compose = __webpack_require__(200);
 
 	var _compose2 = _interopRequireDefault(_compose);
 
-	var _warning = __webpack_require__(195);
+	var _warning = __webpack_require__(197);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
@@ -21665,7 +21924,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 179 */
+/* 181 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -21674,11 +21933,11 @@
 	exports.ActionTypes = undefined;
 	exports['default'] = createStore;
 
-	var _isPlainObject = __webpack_require__(180);
+	var _isPlainObject = __webpack_require__(182);
 
 	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
 
-	var _symbolObservable = __webpack_require__(190);
+	var _symbolObservable = __webpack_require__(192);
 
 	var _symbolObservable2 = _interopRequireDefault(_symbolObservable);
 
@@ -21931,12 +22190,12 @@
 	}
 
 /***/ },
-/* 180 */
+/* 182 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseGetTag = __webpack_require__(181),
-	    getPrototype = __webpack_require__(187),
-	    isObjectLike = __webpack_require__(189);
+	var baseGetTag = __webpack_require__(183),
+	    getPrototype = __webpack_require__(189),
+	    isObjectLike = __webpack_require__(191);
 
 	/** `Object#toString` result references. */
 	var objectTag = '[object Object]';
@@ -21999,12 +22258,12 @@
 
 
 /***/ },
-/* 181 */
+/* 183 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Symbol = __webpack_require__(182),
-	    getRawTag = __webpack_require__(185),
-	    objectToString = __webpack_require__(186);
+	var Symbol = __webpack_require__(184),
+	    getRawTag = __webpack_require__(187),
+	    objectToString = __webpack_require__(188);
 
 	/** `Object#toString` result references. */
 	var nullTag = '[object Null]',
@@ -22033,10 +22292,10 @@
 
 
 /***/ },
-/* 182 */
+/* 184 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var root = __webpack_require__(183);
+	var root = __webpack_require__(185);
 
 	/** Built-in value references. */
 	var Symbol = root.Symbol;
@@ -22045,10 +22304,10 @@
 
 
 /***/ },
-/* 183 */
+/* 185 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var freeGlobal = __webpack_require__(184);
+	var freeGlobal = __webpack_require__(186);
 
 	/** Detect free variable `self`. */
 	var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
@@ -22060,7 +22319,7 @@
 
 
 /***/ },
-/* 184 */
+/* 186 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/** Detect free variable `global` from Node.js. */
@@ -22071,10 +22330,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 185 */
+/* 187 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Symbol = __webpack_require__(182);
+	var Symbol = __webpack_require__(184);
 
 	/** Used for built-in method references. */
 	var objectProto = Object.prototype;
@@ -22123,7 +22382,7 @@
 
 
 /***/ },
-/* 186 */
+/* 188 */
 /***/ function(module, exports) {
 
 	/** Used for built-in method references. */
@@ -22151,10 +22410,10 @@
 
 
 /***/ },
-/* 187 */
+/* 189 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var overArg = __webpack_require__(188);
+	var overArg = __webpack_require__(190);
 
 	/** Built-in value references. */
 	var getPrototype = overArg(Object.getPrototypeOf, Object);
@@ -22163,7 +22422,7 @@
 
 
 /***/ },
-/* 188 */
+/* 190 */
 /***/ function(module, exports) {
 
 	/**
@@ -22184,7 +22443,7 @@
 
 
 /***/ },
-/* 189 */
+/* 191 */
 /***/ function(module, exports) {
 
 	/**
@@ -22219,14 +22478,14 @@
 
 
 /***/ },
-/* 190 */
+/* 192 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(191);
+	module.exports = __webpack_require__(193);
 
 
 /***/ },
-/* 191 */
+/* 193 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, module) {'use strict';
@@ -22235,7 +22494,7 @@
 	  value: true
 	});
 
-	var _ponyfill = __webpack_require__(193);
+	var _ponyfill = __webpack_require__(195);
 
 	var _ponyfill2 = _interopRequireDefault(_ponyfill);
 
@@ -22258,10 +22517,10 @@
 
 	var result = (0, _ponyfill2['default'])(root);
 	exports['default'] = result;
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(192)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(194)(module)))
 
 /***/ },
-/* 192 */
+/* 194 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -22277,7 +22536,7 @@
 
 
 /***/ },
-/* 193 */
+/* 195 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -22305,7 +22564,7 @@
 	};
 
 /***/ },
-/* 194 */
+/* 196 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -22313,13 +22572,13 @@
 	exports.__esModule = true;
 	exports['default'] = combineReducers;
 
-	var _createStore = __webpack_require__(179);
+	var _createStore = __webpack_require__(181);
 
-	var _isPlainObject = __webpack_require__(180);
+	var _isPlainObject = __webpack_require__(182);
 
 	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
 
-	var _warning = __webpack_require__(195);
+	var _warning = __webpack_require__(197);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
@@ -22453,7 +22712,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 195 */
+/* 197 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -22483,7 +22742,7 @@
 	}
 
 /***/ },
-/* 196 */
+/* 198 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -22539,7 +22798,7 @@
 	}
 
 /***/ },
-/* 197 */
+/* 199 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -22550,7 +22809,7 @@
 
 	exports['default'] = applyMiddleware;
 
-	var _compose = __webpack_require__(198);
+	var _compose = __webpack_require__(200);
 
 	var _compose2 = _interopRequireDefault(_compose);
 
@@ -22602,7 +22861,7 @@
 	}
 
 /***/ },
-/* 198 */
+/* 200 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -22643,137 +22902,6 @@
 	    }, last.apply(undefined, arguments));
 	  };
 	}
-
-/***/ },
-/* 199 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	module.exports = {
-	  factoryTodos: __webpack_require__(200),
-	  multipleTodos: __webpack_require__(201)
-	};
-
-/***/ },
-/* 200 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _redux = __webpack_require__(178);
-
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-	var id = 0;
-	function todo() {
-	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-	  var action = arguments[1];
-
-	  switch (action.type) {
-	    case 'ADD_TODO':
-	      return {
-	        title: action.title,
-	        status: false,
-	        id: id++
-	      };
-	      break;
-
-	    case 'ALTER_TODO':
-	      if (state.id !== action.id) return state;
-	      return Object.assign({}, state, { status: !state.status });
-	      break;
-
-	    case 'REMOVE_TODO':
-	      return !(state.id === action.id);
-	      break;
-	    default:
-	      return state;
-	  }
-	}
-
-	function generateTodos() {
-	  var initState = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-
-	  return function todos() {
-	    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initState;
-	    var action = arguments[1];
-
-	    switch (action.type) {
-	      case 'ADD_TODO':
-	        return [].concat(_toConsumableArray(state), [todo(null, action)]);
-	        break;
-
-	      case 'ALTER_TODO':
-	        return state.map(function (t) {
-	          return todo(t, action);
-	        });
-	        break;
-	      case 'REMOVE_TODO':
-	        return state.filter(function (t) {
-	          return todo(t, action);
-	        });
-	        break;
-	      default:
-	        return state;
-	    }
-	  };
-	}
-
-	module.exports = {
-	  factoryTodos: function factoryTodos(initState) {
-	    return (0, _redux.createStore)(generateTodos(initState));
-	  }
-	};
-
-/***/ },
-/* 201 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	var _redux = __webpack_require__(178);
-
-	var _todo = __webpack_require__(200);
-
-	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-	function multipleTodos() {
-	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-	  var action = arguments[1];
-
-	  switch (action.type) {
-	    case 'ADD_LIST':
-	      return [].concat(_toConsumableArray(state), [(0, _todo.factoryTodos)()]);
-	      break;
-
-	    case 'ADD_TODO':
-	      return state.map(function (todos, index) {
-	        if (index !== action.index) return todos;
-	        todos.dispatch({ action: 'ADD_TODO', title: action.title });
-	        return (0, _todo.factoryTodos)(todos.getState());
-	      });
-	      break;
-
-	    case 'ALTER_TODO':
-	      return state.map(function (todos, index) {
-	        if (index !== action.index) return todos;
-	        todos.dispatch({ action: 'ALTER_TODO', id: action.id });
-	        return (0, _todo.factoryTodos)(todos.getState());
-	      });
-	      break;
-
-	    case 'REMOVE_TODO':
-	      return state.filter(function (t) {
-	        return todo(t, action);
-	      });
-	      break;
-	    default:
-	      return state;
-	  }
-	}
-
-	module.exports = (0, _redux.createStore)(multipleTodos);
 
 /***/ }
 /******/ ]);

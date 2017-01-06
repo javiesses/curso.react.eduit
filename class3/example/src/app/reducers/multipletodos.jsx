@@ -7,15 +7,22 @@ function multipleTodos(state=[], action){
       return [...state, factoryTodos()];
     break;
 
+    case 'ADD_TODO':
+      return state.map( (todos, index)=>{
+          if(index!==action.index) return todos;
+          todos.dispatch({action: 'ADD_TODO', title: action.title});
+          return factoryTodos(todos.getState());
+      });
+    break;
+
     case 'ALTER_TODO':
       return state.map( (todos, index)=>{
           if(index!==action.index) return todos;
           todos.dispatch({action: 'ALTER_TODO', id: action.id});
           return factoryTodos(todos.getState());
       });
-
-      return state;
     break;
+
     case 'REMOVE_TODO':
       return state.filter(t=> todo(t, action));
     break;

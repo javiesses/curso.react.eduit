@@ -79,3 +79,4 @@ multipleTodos.subscribe(()=> {
 multipleTodos.dispatch({type:'ADD_LIST'});
 multipleTodos.dispatch({type:'ADD_LIST'});
 multipleTodos.dispatch({type:'ADD_LIST'});
+multipleTodos.dispatch({type:'ADD_TODO', index:1, title:'sarasa'});
