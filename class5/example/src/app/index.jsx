@@ -2,7 +2,8 @@
 import React from 'react';
 import {render} from 'react-dom';
 import { createStore } from 'redux';
-
+//import {request} from './redux'
+let request = require('./request.js');
 const APIHost = 'http://localhost:8000';
 
 function todo(state={}, action){
@@ -13,25 +14,24 @@ function todo(state={}, action){
       complete: false,
       id: action.id
     };
-
-    fetch(APIHost+'/todo', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(obj)
-    });//end fetch
-
+    
+    request.put(APIHost + '/todo', obj);
 
     return obj;
     break;
 
     case 'TOGGLE_TODO':
     if(state.id !== action.id) return state;
-    else return Object.assign({},
-      state,
-      {complete: !state.complete}
-    );
+    else {
+        var toggled = Object.assign({},
+          state,
+          {complete: !state.complete}
+        );
+
+        request.post(toggled);
+
+        return toReturn;
+    }
 
     default:
 
@@ -136,7 +136,7 @@ class TodosList extends React.Component{
     return (
       <ul>
         {this.props.todos.map((t)=>{
-          return <TodoItem key={t.id} todo={t} />
+          return <TodoItem key={t.id} todo={t} />//
         })}
       </ul>
     );

@@ -30,6 +30,24 @@ app.put('/todo', (req, res)=>{
 
 });
 
+app.post('/todo', (req, res)=>{
+  let obj = {
+    title: req.body.title,
+    id: req.body.id,
+    _id: req.body._id,
+    complete: req.body.complete
+  };
+
+  db.todo.update(
+    { _id: obj._id },
+    obj, 
+    (err, docs)=>{
+      err ? res.json({error: err, data: null}) : res.json({error: null, data: docs});
+    }
+  );
+
+});
+
 app.get('/todo', (req, res)=>{
   db.todo.find({}, {}, (err, docs)=> err? res.json({error: err, todos:null}) : res.json({error: null, todos: docs}) );
 });

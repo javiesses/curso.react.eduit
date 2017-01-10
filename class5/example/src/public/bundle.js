@@ -66,6 +66,8 @@
 
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
+	//import {request} from './redux'
+	var request = __webpack_require__(199);
 	var APIHost = 'http://localhost:8000';
 
 	function todo() {
@@ -80,20 +82,19 @@
 	        id: action.id
 	      };
 
-	      fetch(APIHost + '/todo', {
-	        method: 'PUT',
-	        headers: {
-	          'Content-Type': 'application/json'
-	        },
-	        body: JSON.stringify(obj)
-	      }); //end fetch
-
+	      request.put(APIHost + '/todo', obj);
 
 	      return obj;
 	      break;
 
 	    case 'TOGGLE_TODO':
-	      if (state.id !== action.id) return state;else return Object.assign({}, state, { complete: !state.complete });
+	      if (state.id !== action.id) return state;else {
+	        var toggled = Object.assign({}, state, { complete: !state.complete });
+
+	        request.post(toggled);
+
+	        return toReturn;
+	      }
 
 	    default:
 
@@ -235,7 +236,7 @@
 	        'ul',
 	        null,
 	        this.props.todos.map(function (t) {
-	          return _react2.default.createElement(TodoItem, { key: t.id, todo: t });
+	          return _react2.default.createElement(TodoItem, { key: t.id, todo: t }); //
 	        })
 	      );
 	    }
@@ -22731,6 +22732,61 @@
 	    }, last.apply(undefined, arguments));
 	  };
 	}
+
+/***/ },
+/* 199 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Request = function () {
+		function Request() {
+			_classCallCheck(this, Request);
+
+			this.r = fetch;
+		}
+
+		_createClass(Request, [{
+			key: 'get',
+			value: function get(path) {
+				return fetch(path).then(function (response) {
+					return response.json();
+				});
+			}
+		}, {
+			key: 'put',
+			value: function put(path, obj) {
+				return this.r(path, {
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(obj)
+				});
+			}
+		}, {
+			key: 'post',
+			value: function post(path, obj) {
+				return this.r(path, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(obj)
+				});
+			}
+		}]);
+
+		return Request;
+	}();
+
+	;
+
+	module.exports = Request;
 
 /***/ }
 /******/ ]);
