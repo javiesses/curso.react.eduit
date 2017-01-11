@@ -6,34 +6,34 @@ import {default as Request} from './lib/request.jsx';
 
 const APIHost = 'http://localhost:8000';
 const request = new Request();
+var id;
 
 function todo(state={}, action){
   switch (action.type) {
     case 'ADD_TODO':
-    let obj= {
-      title: action.title,
-      complete: false,
-      id: action.id
-    };
+      id++;
+      let obj= {
+        title: action.title,
+        complete: false,
+        id: id 
+      };
 
-    fetch(APIHost+'/todo', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(obj)
-    });//end fetch
+      request.put(APIHost+'/todo', obj);
 
-
-    return obj;
-    break;
+      return obj;
+      break;
 
     case 'TOGGLE_TODO':
-    if(state.id !== action.id) return state;
-    else return Object.assign({},
-      state,
-      {complete: !state.complete}
-    );
+      if(state.id !== action.id) return state;
+      else {
+        let toggled = Object.assign({},
+          state,
+          {complete: !state.complete}
+        );
+
+        request.patch(APIHost+'/todo', toggled);
+        return toggled;
+      }
 
     default:
 
@@ -63,9 +63,10 @@ let todoStore = createStore(todosFactory([]));
 
 request.get(APIHost+'/todo')
 .then(data=>{
+  id = data.todos.length || 0;
   todoStore = createStore(todosFactory(data.todos));
   todoStore.subscribe(()=> appRender())
-
+  appRender();
 });
 
 

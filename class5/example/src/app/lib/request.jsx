@@ -16,6 +16,16 @@ class Request{
 			body: JSON.stringify(data)
 		})
 	}
+
+	patch(path, data={}){
+		return fetch(path, {
+			method: 'PATCH',
+			headers:{
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(data)
+		})
+	}
 }
 
 export default Request;
