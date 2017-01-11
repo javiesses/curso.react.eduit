@@ -84,13 +84,19 @@
 	      var obj = {
 	        title: action.title,
 	        complete: false,
-	        id: id
+	        id: id,
+	        error: false
 	      };
 
-	      request.put(APIHost + '/todo', obj);
+	      request.put(APIHost + '/todo', obj).catch(function (err) {
+	        //llamara al store
+	      });
 
 	      return obj;
 	      break;
+
+	    case 'ERROR_TODO':
+	      if (state.id !== action.id) return state;else return Object.assign({}, state, { error: !state.error });
 
 	    case 'TOGGLE_TODO':
 	      if (state.id !== action.id) return state;else {
